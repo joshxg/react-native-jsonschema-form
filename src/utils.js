@@ -1,65 +1,65 @@
-import React from "react";
-import validateFormData from "./validate";
-import fill from "core-js/library/fn/array/fill";
+import React from 'react';
+import validateFormData from './validate';
+import fill from 'core-js/library/fn/array/fill';
 
-export const ADDITIONAL_PROPERTY_FLAG = "__additional_property";
+export const ADDITIONAL_PROPERTY_FLAG = '__additional_property';
 
 const widgetMap = {
   boolean: {
-    checkbox: "CheckboxWidget",
-    radio: "RadioWidget",
-    select: "SelectWidget",
-    hidden: "HiddenWidget",
-    vini:"ViniButton"
+    checkbox: 'CheckboxWidget',
+    radio: 'RadioWidget',
+    select: 'SelectWidget',
+    hidden: 'HiddenWidget',
+    vini: 'ViniButton',
   },
   string: {
-    text: "TextWidget",
-    password: "PasswordWidget",
-    email: "EmailWidget",
-    hostname: "TextWidget",
-    ipv4: "TextWidget",
-    ipv6: "TextWidget",
-    uri: "URLWidget",
-    "data-url": "FileWidget",
-    radio: "RadioWidget",
-    select: "SelectWidget",
-    textarea: "TextareaWidget",
-    hidden: "HiddenWidget",
-    date: "DateWidget",
-    datetime: "DateTimeWidget",
-    "date-time": "DateTimeWidget",
-    "alt-date": "AltDateWidget",
-    "alt-datetime": "AltDateTimeWidget",
-    color: "ColorWidget",
-    file: "FileWidget",
+    text: 'TextWidget',
+    password: 'PasswordWidget',
+    email: 'EmailWidget',
+    hostname: 'TextWidget',
+    ipv4: 'TextWidget',
+    ipv6: 'TextWidget',
+    uri: 'URLWidget',
+    'data-url': 'FileWidget',
+    radio: 'RadioWidget',
+    select: 'SelectWidget',
+    textarea: 'TextareaWidget',
+    hidden: 'HiddenWidget',
+    date: 'DateWidget',
+    datetime: 'DateTimeWidget',
+    'date-time': 'DateTimeWidget',
+    'alt-date': 'AltDateWidget',
+    'alt-datetime': 'AltDateTimeWidget',
+    color: 'ColorWidget',
+    file: 'FileWidget',
   },
   number: {
-    text: "TextWidget",
-    select: "SelectWidget",
-    updown: "UpDownWidget",
-    range: "RangeWidget",
-    radio: "RadioWidget",
-    hidden: "HiddenWidget",
+    text: 'TextWidget',
+    select: 'SelectWidget',
+    updown: 'UpDownWidget',
+    range: 'RangeWidget',
+    radio: 'RadioWidget',
+    hidden: 'HiddenWidget',
   },
   integer: {
-    text: "TextWidget",
-    select: "SelectWidget",
-    updown: "UpDownWidget",
-    range: "RangeWidget",
-    radio: "RadioWidget",
-    hidden: "HiddenWidget",
+    text: 'TextWidget',
+    select: 'SelectWidget',
+    updown: 'UpDownWidget',
+    range: 'RangeWidget',
+    radio: 'RadioWidget',
+    hidden: 'HiddenWidget',
   },
   array: {
-    select: "SelectWidget",
-    checkboxes: "CheckboxesWidget",
-    files: "FileWidget",
+    select: 'SelectWidget',
+    checkboxes: 'CheckboxesWidget',
+    files: 'FileWidget',
   },
 };
 
 export function getDefaultRegistry() {
   return {
-    fields: require("./components/fields").default,
-    widgets: require("./components/widgets").default,
+    fields: require('./components/fields').default,
+    widgets: require('./components/widgets').default,
     definitions: {},
     formContext: {},
   };
@@ -68,7 +68,7 @@ export function getDefaultRegistry() {
 export function getSchemaType(schema) {
   let { type } = schema;
   if (!type && schema.enum) {
-    type = "string";
+    type = 'string';
   }
   return type;
 }
@@ -79,8 +79,7 @@ export function getWidget(schema, widget, registeredWidgets = {}) {
   function mergeOptions(Widget) {
     // cache return value as property of widget for proper react reconciliation
     if (!Widget.MergedWidget) {
-      const defaultOptions =
-        (Widget.defaultProps && Widget.defaultProps.options) || {};
+      const defaultOptions = (Widget.defaultProps && Widget.defaultProps.options) || {};
       Widget.MergedWidget = ({ options = {}, ...props }) => (
         <Widget options={{ ...defaultOptions, ...options }} {...props} />
       );
@@ -88,11 +87,11 @@ export function getWidget(schema, widget, registeredWidgets = {}) {
     return Widget.MergedWidget;
   }
 
-  if (typeof widget === "function") {
+  if (typeof widget === 'function') {
     return mergeOptions(widget);
   }
 
-  if (typeof widget !== "string") {
+  if (typeof widget !== 'string') {
     throw new Error(`Unsupported widget definition: ${typeof widget}`);
   }
 
@@ -120,38 +119,32 @@ function computeDefaults(schema, parentDefaults, definitions = {}) {
     // For object defaults, only override parent defaults that are defined in
     // schema.default.
     defaults = mergeObjects(defaults, schema.default);
-  } else if ("default" in schema) {
+  } else if ('default' in schema) {
     // Use schema defaults for this node.
     defaults = schema.default;
-  } else if ("$ref" in schema) {
+  } else if ('$ref' in schema) {
     // Use referenced schema defaults for this node.
     const refSchema = findSchemaDefinition(schema.$ref, definitions);
     return computeDefaults(refSchema, defaults, definitions);
   } else if (isFixedItems(schema)) {
-    defaults = schema.items.map(itemSchema =>
-      computeDefaults(itemSchema, undefined, definitions)
-    );
+    defaults = schema.items.map(itemSchema => computeDefaults(itemSchema, undefined, definitions));
   }
   // Not defaults defined for this node, fallback to generic typed ones.
-  if (typeof defaults === "undefined") {
+  if (typeof defaults === 'undefined') {
     defaults = schema.default;
   }
 
   switch (schema.type) {
     // We need to recur for object schema inner default values.
-    case "object":
+    case 'object':
       return Object.keys(schema.properties || {}).reduce((acc, key) => {
         // Compute the defaults for this node, with the parent defaults we might
         // have from a previous run: defaults[key].
-        acc[key] = computeDefaults(
-          schema.properties[key],
-          (defaults || {})[key],
-          definitions
-        );
+        acc[key] = computeDefaults(schema.properties[key], (defaults || {})[key], definitions);
         return acc;
       }, {});
 
-    case "array":
+    case 'array':
       if (schema.minItems) {
         if (!isMultiSelect(schema, definitions)) {
           const defaultsLength = defaults ? defaults.length : 0;
@@ -176,11 +169,11 @@ function computeDefaults(schema, parentDefaults, definitions = {}) {
 
 export function getDefaultFormState(_schema, formData, definitions = {}) {
   if (!isObject(_schema)) {
-    throw new Error("Invalid schema: " + _schema);
+    throw new Error('Invalid schema: ' + _schema);
   }
   const schema = retrieveSchema(_schema, definitions, formData);
   const defaults = computeDefaults(schema, _schema.default, definitions);
-  if (typeof formData === "undefined") {
+  if (typeof formData === 'undefined') {
     // No form data? Use schema defaults.
     return defaults;
   }
@@ -194,21 +187,19 @@ export function getDefaultFormState(_schema, formData, definitions = {}) {
 export function getUiOptions(uiSchema) {
   // get all passed options from ui:widget, ui:options, and ui:<optionName>
   return Object.keys(uiSchema)
-    .filter(key => key.indexOf("ui:") === 0)
+    .filter(key => key.indexOf('ui:') === 0)
     .reduce((options, key) => {
       const value = uiSchema[key];
 
-      if (key === "ui:widget" && isObject(value)) {
-        console.warn(
-          "Setting options via ui:widget object is deprecated, use ui:options instead"
-        );
+      if (key === 'ui:widget' && isObject(value)) {
+        console.warn('Setting options via ui:widget object is deprecated, use ui:options instead');
         return {
           ...options,
           ...(value.options || {}),
           widget: value.component,
         };
       }
-      if (key === "ui:options" && isObject(value)) {
+      if (key === 'ui:options' && isObject(value)) {
         return { ...options, ...value };
       }
       return { ...options, [key.substring(3)]: value };
@@ -216,7 +207,7 @@ export function getUiOptions(uiSchema) {
 }
 
 export function isObject(thing) {
-  return typeof thing === "object" && thing !== null && !Array.isArray(thing);
+  return typeof thing === 'object' && thing !== null && !Array.isArray(thing);
 }
 
 export function mergeObjects(obj1, obj2, concatArrays = false) {
@@ -237,7 +228,7 @@ export function mergeObjects(obj1, obj2, concatArrays = false) {
 }
 
 export function asNumber(value) {
-  if (value === "") {
+  if (value === '') {
     return undefined;
   }
   if (/\.$/.test(value)) {
@@ -250,7 +241,7 @@ export function asNumber(value) {
     return value;
   }
   const n = Number(value);
-  const valid = typeof n === "number" && !Number.isNaN(n);
+  const valid = typeof n === 'number' && !Number.isNaN(n);
 
   if (/\.\d*0$/.test(value)) {
     // It's a number, that's cool - but we need it as a string so it doesn't screw
@@ -272,30 +263,23 @@ export function orderProperties(properties, order) {
       prev[curr] = true;
       return prev;
     }, {});
-  const errorPropList = arr =>
-    arr.length > 1
-      ? `properties '${arr.join("', '")}'`
-      : `property '${arr[0]}'`;
+  const errorPropList = arr => (arr.length > 1 ? `properties '${arr.join("', '")}'` : `property '${arr[0]}'`);
   const propertyHash = arrayToHash(properties);
   const orderHash = arrayToHash(order);
-  const extraneous = order.filter(prop => prop !== "*" && !propertyHash[prop]);
+  const extraneous = order.filter(prop => prop !== '*' && !propertyHash[prop]);
   if (extraneous.length) {
-    throw new Error(
-      `uiSchema order list contains extraneous ${errorPropList(extraneous)}`
-    );
+    throw new Error(`uiSchema order list contains extraneous ${errorPropList(extraneous)}`);
   }
   const rest = properties.filter(prop => !orderHash[prop]);
-  const restIndex = order.indexOf("*");
+  const restIndex = order.indexOf('*');
   if (restIndex === -1) {
     if (rest.length) {
-      throw new Error(
-        `uiSchema order list does not contain ${errorPropList(rest)}`
-      );
+      throw new Error(`uiSchema order list does not contain ${errorPropList(rest)}`);
     }
     return order;
   }
-  if (restIndex !== order.lastIndexOf("*")) {
-    throw new Error("uiSchema order list contains more than one wildcard item");
+  if (restIndex !== order.lastIndexOf('*')) {
+    throw new Error('uiSchema order list contains more than one wildcard item');
   }
 
   const complete = [...order];
@@ -308,19 +292,16 @@ export function orderProperties(properties, order) {
  * constant value.
  */
 export function isConstant(schema) {
-  return (
-    (Array.isArray(schema.enum) && schema.enum.length === 1) ||
-    schema.hasOwnProperty("const")
-  );
+  return (Array.isArray(schema.enum) && schema.enum.length === 1) || schema.hasOwnProperty('const');
 }
 
 export function toConstant(schema) {
   if (Array.isArray(schema.enum) && schema.enum.length === 1) {
     return schema.enum[0];
-  } else if (schema.hasOwnProperty("const")) {
+  } else if (schema.hasOwnProperty('const')) {
     return schema.const;
   } else {
-    throw new Error("schema cannot be inferred as a constant");
+    throw new Error('schema cannot be inferred as a constant');
   }
 }
 
@@ -343,26 +324,22 @@ export function isMultiSelect(schema, definitions = {}) {
 }
 
 export function isFilesArray(schema, uiSchema, definitions = {}) {
-  if (uiSchema["ui:widget"] === "files") {
+  if (uiSchema['ui:widget'] === 'files') {
     return true;
   } else if (schema.items) {
     const itemsSchema = retrieveSchema(schema.items, definitions);
-    return itemsSchema.type === "string" && itemsSchema.format === "data-url";
+    return itemsSchema.type === 'string' && itemsSchema.format === 'data-url';
   }
   return false;
 }
 
 export function isFixedItems(schema) {
-  return (
-    Array.isArray(schema.items) &&
-    schema.items.length > 0 &&
-    schema.items.every(item => isObject(item))
-  );
+  return Array.isArray(schema.items) && schema.items.length > 0 && schema.items.every(item => isObject(item));
 }
 
 export function allowAdditionalItems(schema) {
   if (schema.additionalItems === true) {
-    console.warn("additionalItems=true is currently not supported");
+    console.warn('additionalItems=true is currently not supported');
   }
   return isObject(schema.additionalItems);
 }
@@ -387,10 +364,10 @@ function findSchemaDefinition($ref, definitions = {}) {
   // Extract and use the referenced definition if we have it.
   const match = /^#\/definitions\/(.*)$/.exec($ref);
   if (match && match[1]) {
-    const parts = match[1].split("/");
+    const parts = match[1].split('/');
     let current = definitions;
     for (let part of parts) {
-      part = part.replace(/~1/g, "/").replace(/~0/g, "~");
+      part = part.replace(/~1/g, '/').replace(/~0/g, '~');
       if (current.hasOwnProperty(part)) {
         current = current[part];
       } else {
@@ -409,28 +386,24 @@ function findSchemaDefinition($ref, definitions = {}) {
 //  based on the data we are defining
 const guessType = function guessType(value) {
   if (Array.isArray(value)) {
-    return "array";
-  } else if (typeof value === "string") {
-    return "string";
+    return 'array';
+  } else if (typeof value === 'string') {
+    return 'string';
   } else if (value == null) {
-    return "null";
-  } else if (typeof value === "boolean") {
-    return "boolean";
+    return 'null';
+  } else if (typeof value === 'boolean') {
+    return 'boolean';
   } else if (!isNaN(value)) {
-    return "number";
-  } else if (typeof value === "object") {
-    return "object";
+    return 'number';
+  } else if (typeof value === 'object') {
+    return 'object';
   }
   // Default to string if we can't figure it out
-  return "string";
+  return 'string';
 };
 
 // This function will create new "properties" items for each key in our formData
-export function stubExistingAdditionalProperties(
-  schema,
-  definitions = {},
-  formData = {}
-) {
+export function stubExistingAdditionalProperties(schema, definitions = {}, formData = {}) {
   // Clone the schema so we don't ruin the consumer's original
   schema = {
     ...schema,
@@ -441,9 +414,7 @@ export function stubExistingAdditionalProperties(
       // No need to stub, our schema already has the property
       return;
     }
-    const additionalProperties = schema.additionalProperties.hasOwnProperty(
-      "type"
-    )
+    const additionalProperties = schema.additionalProperties.hasOwnProperty('type')
       ? { ...schema.additionalProperties }
       : { type: guessType(formData[key]) };
     // The type of our new key should match the additionalProperties value;
@@ -455,9 +426,9 @@ export function stubExistingAdditionalProperties(
 }
 
 export function resolveSchema(schema, definitions = {}, formData = {}) {
-  if (schema.hasOwnProperty("$ref")) {
+  if (schema.hasOwnProperty('$ref')) {
     return resolveReference(schema, definitions, formData);
-  } else if (schema.hasOwnProperty("dependencies")) {
+  } else if (schema.hasOwnProperty('dependencies')) {
     const resolvedSchema = resolveDependencies(schema, definitions, formData);
     return retrieveSchema(resolvedSchema, definitions, formData);
   } else {
@@ -472,24 +443,15 @@ function resolveReference(schema, definitions, formData) {
   // Drop the $ref property of the source schema.
   const { $ref, ...localSchema } = schema;
   // Update referenced schema definition with local schema properties.
-  return retrieveSchema(
-    { ...$refSchema, ...localSchema },
-    definitions,
-    formData
-  );
+  return retrieveSchema({ ...$refSchema, ...localSchema }, definitions, formData);
 }
 
 export function retrieveSchema(schema, definitions = {}, formData = {}) {
   const resolvedSchema = resolveSchema(schema, definitions, formData);
   const hasAdditionalProperties =
-    resolvedSchema.hasOwnProperty("additionalProperties") &&
-    resolvedSchema.additionalProperties !== false;
+    resolvedSchema.hasOwnProperty('additionalProperties') && resolvedSchema.additionalProperties !== false;
   if (hasAdditionalProperties) {
-    return stubExistingAdditionalProperties(
-      resolvedSchema,
-      definitions,
-      formData
-    );
+    return stubExistingAdditionalProperties(resolvedSchema, definitions, formData);
   }
   return resolvedSchema;
 }
@@ -507,13 +469,7 @@ function resolveDependencies(schema, definitions, formData) {
     if (Array.isArray(dependencyValue)) {
       resolvedSchema = withDependentProperties(resolvedSchema, dependencyValue);
     } else if (isObject(dependencyValue)) {
-      resolvedSchema = withDependentSchema(
-        resolvedSchema,
-        definitions,
-        formData,
-        dependencyKey,
-        dependencyValue
-      );
+      resolvedSchema = withDependentSchema(resolvedSchema, definitions, formData, dependencyKey, dependencyValue);
     }
   }
   return resolvedSchema;
@@ -529,18 +485,8 @@ function withDependentProperties(schema, additionallyRequired) {
   return { ...schema, required: required };
 }
 
-function withDependentSchema(
-  schema,
-  definitions,
-  formData,
-  dependencyKey,
-  dependencyValue
-) {
-  let { oneOf, ...dependentSchema } = retrieveSchema(
-    dependencyValue,
-    definitions,
-    formData
-  );
+function withDependentSchema(schema, definitions, formData, dependencyKey, dependencyValue) {
+  let { oneOf, ...dependentSchema } = retrieveSchema(dependencyValue, definitions, formData);
   schema = mergeSchemas(schema, dependentSchema);
   // Since it does not contain oneOf, we return the original schema.
   if (oneOf === undefined) {
@@ -550,26 +496,12 @@ function withDependentSchema(
   }
   // Resolve $refs inside oneOf.
   const resolvedOneOf = oneOf.map(subschema =>
-    subschema.hasOwnProperty("$ref")
-      ? resolveReference(subschema, definitions, formData)
-      : subschema
+    subschema.hasOwnProperty('$ref') ? resolveReference(subschema, definitions, formData) : subschema
   );
-  return withExactlyOneSubschema(
-    schema,
-    definitions,
-    formData,
-    dependencyKey,
-    resolvedOneOf
-  );
+  return withExactlyOneSubschema(schema, definitions, formData, dependencyKey, resolvedOneOf);
 }
 
-function withExactlyOneSubschema(
-  schema,
-  definitions,
-  formData,
-  dependencyKey,
-  oneOf
-) {
+function withExactlyOneSubschema(schema, definitions, formData, dependencyKey, oneOf) {
   const validSubschemas = oneOf.filter(subschema => {
     if (!subschema.properties) {
       return false;
@@ -577,7 +509,7 @@ function withExactlyOneSubschema(
     const { [dependencyKey]: conditionPropertySchema } = subschema.properties;
     if (conditionPropertySchema) {
       const conditionSchema = {
-        type: "object",
+        type: 'object',
         properties: {
           [dependencyKey]: conditionPropertySchema,
         },
@@ -587,21 +519,13 @@ function withExactlyOneSubschema(
     }
   });
   if (validSubschemas.length !== 1) {
-    console.warn(
-      "ignoring oneOf in dependencies because there isn't exactly one subschema that is valid"
-    );
+    console.warn("ignoring oneOf in dependencies because there isn't exactly one subschema that is valid");
     return schema;
   }
   const subschema = validSubschemas[0];
-  const {
-    [dependencyKey]: conditionPropertySchema,
-    ...dependentSubschema
-  } = subschema.properties;
+  const { [dependencyKey]: conditionPropertySchema, ...dependentSubschema } = subschema.properties;
   const dependentSchema = { ...subschema, properties: dependentSubschema };
-  return mergeSchemas(
-    schema,
-    retrieveSchema(dependentSchema, definitions, formData)
-  );
+  return mergeSchemas(schema, retrieveSchema(dependentSchema, definitions, formData));
 }
 
 function mergeSchemas(schema1, schema2) {
@@ -609,7 +533,7 @@ function mergeSchemas(schema1, schema2) {
 }
 
 function isArguments(object) {
-  return Object.prototype.toString.call(object) === "[object Arguments]";
+  return Object.prototype.toString.call(object) === '[object Arguments]';
 }
 
 export function deepEquals(a, b, ca = [], cb = []) {
@@ -618,11 +542,11 @@ export function deepEquals(a, b, ca = [], cb = []) {
   // https://github.com/othiym23/node-deeper
   if (a === b) {
     return true;
-  } else if (typeof a === "function" || typeof b === "function") {
+  } else if (typeof a === 'function' || typeof b === 'function') {
     // Assume all functions are equivalent
     // see https://github.com/mozilla-services/react-jsonschema-form/issues/255
     return true;
-  } else if (typeof a !== "object" || typeof b !== "object") {
+  } else if (typeof a !== 'object' || typeof b !== 'object') {
     return false;
   } else if (a === null || b === null) {
     return false;
@@ -694,36 +618,24 @@ export function shouldRender(comp, nextProps, nextState) {
   return !deepEquals(props, nextProps) || !deepEquals(state, nextState);
 }
 
-export function toIdSchema(
-  schema,
-  id,
-  definitions,
-  formData = {},
-  idPrefix = "root"
-) {
+export function toIdSchema(schema, id, definitions, formData = {}, idPrefix = 'root') {
   const idSchema = {
     $id: id || idPrefix,
   };
-  if ("$ref" in schema || "dependencies" in schema) {
+  if ('$ref' in schema || 'dependencies' in schema) {
     const _schema = retrieveSchema(schema, definitions, formData);
     return toIdSchema(_schema, id, definitions, formData, idPrefix);
   }
-  if ("items" in schema && !schema.items.$ref) {
+  if ('items' in schema && !schema.items.$ref) {
     return toIdSchema(schema.items, id, definitions, formData, idPrefix);
   }
-  if (schema.type !== "object") {
+  if (schema.type !== 'object') {
     return idSchema;
   }
   for (const name in schema.properties || {}) {
     const field = schema.properties[name];
-    const fieldId = idSchema.$id + "_" + name;
-    idSchema[name] = toIdSchema(
-      field,
-      fieldId,
-      definitions,
-      formData[name],
-      idPrefix
-    );
+    const fieldId = idSchema.$id + '_' + name;
+    idSchema[name] = toIdSchema(field, fieldId, definitions, formData[name], idPrefix);
   }
   return idSchema;
 }
@@ -741,7 +653,7 @@ export function parseDateString(dateString, includeTime = true) {
   }
   const date = new Date(dateString);
   if (Number.isNaN(date.getTime())) {
-    throw new Error("Unable to parse date " + dateString);
+    throw new Error('Unable to parse date ' + dateString);
   }
   return {
     year: date.getUTCFullYear(),
@@ -753,10 +665,7 @@ export function parseDateString(dateString, includeTime = true) {
   };
 }
 
-export function toDateString(
-  { year, month, day, hour = 0, minute = 0, second = 0 },
-  time = true
-) {
+export function toDateString({ year, month, day, hour = 0, minute = 0, second = 0 }, time = true) {
   const utcTime = Date.UTC(year, month - 1, day, hour, minute, second);
   const datetime = new Date(utcTime).toJSON();
   return time ? datetime : datetime.slice(0, 10);
@@ -765,7 +674,7 @@ export function toDateString(
 export function pad(num, size) {
   let s = String(num);
   while (s.length < size) {
-    s = "0" + s;
+    s = '0' + s;
   }
   return s;
 }
@@ -782,23 +691,23 @@ export function setState(instance, state, callback) {
 
 export function dataURItoBlob(dataURI) {
   // Split metadata from data
-  const splitted = dataURI.split(",");
+  const splitted = dataURI.split(',');
   // Split params
-  const params = splitted[0].split(";");
+  const params = splitted[0].split(';');
   // Get mime-type from params
-  const type = params[0].replace("data:", "");
+  const type = params[0].replace('data:', '');
   // Filter the name property from params
   const properties = params.filter(param => {
-    return param.split("=")[0] === "name";
+    return param.split('=')[0] === 'name';
   });
   // Look for the name and use unknown if no name property.
   let name;
   if (properties.length !== 1) {
-    name = "unknown";
+    name = 'unknown';
   } else {
     // Because we filtered out the other property,
     // we only have the name case here.
-    name = properties[0].split("=")[1];
+    name = properties[0].split('=')[1];
   }
 
   // Built the Uint8Array Blob parameter from the base64 string.
@@ -827,11 +736,8 @@ export function rangeSpec(schema) {
   return spec;
 }
 
-
-
-export function getStyle(incomingStyle,styleName,widgetName){
-  if(incomingStyle && incomingStyle[widgetName] && incomingStyle[widgetName][styleName] )
-    return incomingStyle[widgetName][styleName]
-  else
-  return {}
+export function getStyle(incomingStyle, styleName, widgetName) {
+  if (incomingStyle && incomingStyle[widgetName] && incomingStyle[widgetName][styleName])
+    return incomingStyle[widgetName][styleName];
+  else return {};
 }
